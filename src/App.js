@@ -33,11 +33,14 @@ import AccessLogs from './components/AccessLogs';
 import SensorModifications from './components/SensorModifications';
 import AuthorizedUsers from './components/AuthorizedUsers';
 import AccountRequests from './components/AccountRequests';
+import SignUp from './components/SignUp';
+
 
 function App() {
   return (
     <Routes>
       <Route path="/login" element={<Login />} /> {/* Login page */}
+      <Route path="/register" element={<SignUp />} />
       <Route path="/dashboard" element={<Dashboard />} />
       <Route path="/dashboard/sensors" element={<SensorManagement />} />
       <Route path="/dashboard/sensor-logs" element={<SensorLogs />} />
