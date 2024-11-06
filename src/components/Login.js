@@ -220,7 +220,10 @@ const Login = () => {
     e.preventDefault();
     setError('');
     setResponseMessage('');
+
     try {
+      console.log('Attempting to login with credentials:', credentials);
+
       const response = await fetch('https://backend-login-1-xc0i.onrender.com/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -234,16 +237,16 @@ const Login = () => {
       const data = await response.json();
       console.log('Login successful, received data:', data);
 
-      // Check if the user has the role of "Patient" and is verified
-      if (data.user && data.user.Role === "Patient" && data.user.status === 1) {
-        localStorage.setItem('authToken', data.token);
-        localStorage.setItem('UserID', data.user.UserID);
+      // Check if user is a verified patient before storing token and redirecting
+      if (data.status === 1 && data.role === 'Patient') {
+        localStorage.setItem('authToken', data.access_token);
+        localStorage.setItem('userID', data.user_id); // Save user ID for further use
+        setResponseMessage(`Welcome ${data.user || 'User'}!`);
 
-        setResponseMessage(`Welcome ${data.user.FirstName}!`);
         console.log('Redirecting to /dashboard');
         navigate('/dashboard');
       } else {
-        setError('Access denied: Only patients can access the dashboard.');
+        setError('Access denied: Only verified patients are allowed.');
       }
     } catch (error) {
       console.error('Login error:', error);
@@ -274,6 +277,7 @@ const Login = () => {
               placeholder="Enter your email"
               value={credentials.email}
               onChange={(e) => setCredentials({ ...credentials, email: e.target.value })}
+              required
             />
           </div>
           <div>
@@ -284,6 +288,7 @@ const Login = () => {
               placeholder="Enter your password"
               value={credentials.password}
               onChange={(e) => setCredentials({ ...credentials, password: e.target.value })}
+              required
             />
           </div>
           <button
