@@ -91,20 +91,19 @@ const SensorManagement = () => {
   const [sensors, setSensors] = useState([]);
   const navigate = useNavigate();
 
-  // Fetch sensor details from the backend
   useEffect(() => {
     const fetchSensorDetails = async () => {
       try {
-        const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/getsensordetails`);
-        setSensors(response.data); // Update the state with the fetched sensors
+        const response = await axios.get('https://backend-login-1-xc0i.onrender.com/getsensordetails');
+        console.log("Fetched sensor details:", response.data); // Log response data for debugging
+        setSensors(response.data);
       } catch (error) {
-        console.error("Error fetching sensor details:", error);
+        console.error("Error fetching sensor details:", error.response?.data || error.message);
       }
     };
     fetchSensorDetails();
   }, []);
 
-  // Handle submission for both creating and updating sensors
   const handleAddOrUpdateSensor = (sensorDetails) => {
     if (editingSensor) {
       setSensors((prevSensors) =>
@@ -120,7 +119,6 @@ const SensorManagement = () => {
     setModalOpen(false);
   };
 
-  // Open modal for editing a specific sensor
   const handleEditSensor = (sensor) => {
     setEditingSensor(sensor);
     setModalOpen(true);
@@ -145,18 +143,22 @@ const SensorManagement = () => {
       </button>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {sensors.map((sensor) => (
-          <div
-            key={sensor.id || sensor.SensorID} // Use SensorID if available from the backend
-            className="bg-white p-4 rounded shadow cursor-pointer hover:shadow-lg"
-            onClick={() => handleEditSensor(sensor)}
-          >
-            <h3 className="font-semibold text-lg">{sensor.SensorType}</h3>
-            <p>Range: {sensor.RangeMin} - {sensor.RangeMax}</p>
-            <p>Location: {sensor.Location}</p>
-            <p>Status: {sensor.Status}</p>
-          </div>
-        ))}
+        {sensors.length > 0 ? (
+          sensors.map((sensor) => (
+            <div
+              key={sensor.SensorID || sensor.id}
+              className="bg-white p-4 rounded shadow cursor-pointer hover:shadow-lg"
+              onClick={() => handleEditSensor(sensor)}
+            >
+              <h3 className="font-semibold text-lg">{sensor.SensorType}</h3>
+              <p>Range: {sensor.RangeMin} - {sensor.RangeMax}</p>
+              <p>Location: {sensor.Location}</p>
+              <p>Status: {sensor.Status}</p>
+            </div>
+          ))
+        ) : (
+          <p>No sensor details available.</p>
+        )}
       </div>
 
       {isModalOpen && (
