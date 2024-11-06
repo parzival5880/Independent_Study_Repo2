@@ -95,7 +95,7 @@ const SensorManagement = () => {
     const fetchSensorDetails = async () => {
       try {
         const response = await axios.get('https://backend-login-1-xc0i.onrender.com/getsensordetails');
-        console.log("Fetched sensor details:", response.data); // Log response data for debugging
+        console.log("Fetched sensor details:", response.data);
         setSensors(response.data);
       } catch (error) {
         console.error("Error fetching sensor details:", error.response?.data || error.message);
@@ -147,13 +147,22 @@ const SensorManagement = () => {
           sensors.map((sensor) => (
             <div
               key={sensor.SensorID || sensor.id}
-              className="bg-white p-4 rounded shadow cursor-pointer hover:shadow-lg"
+              className="bg-white p-6 rounded shadow-lg hover:shadow-xl"
               onClick={() => handleEditSensor(sensor)}
             >
-              <h3 className="font-semibold text-lg">{sensor.SensorType}</h3>
-              <p>Range: {sensor.RangeMin} - {sensor.RangeMax}</p>
-              <p>Location: {sensor.Location}</p>
-              <p>Status: {sensor.Status}</p>
+              <h3 className="font-semibold text-xl mb-4">{sensor.SensorType} (ID: {sensor.SensorID})</h3>
+              <div className="text-sm text-gray-700">
+                <p><strong>Range:</strong> {sensor.RangeMin} - {sensor.RangeMax}</p>
+                <p><strong>Absolute Range:</strong> {sensor.AbsoluteMin} - {sensor.AbsoluteMax}</p>
+                <p><strong>Current Value:</strong> {sensor.CurrentValue}</p>
+                <p><strong>Status:</strong> {sensor.Status}</p>
+                <p><strong>Patient ID:</strong> {sensor.PatientID}</p>
+                <p><strong>Location:</strong> {sensor.Location}</p>
+                <p><strong>Data Collection Frequency:</strong> {sensor.DataCollectionFrequency} minutes</p>
+                <p><strong>Sensor Category:</strong> {sensor.SensorCategory}</p>
+                <p><strong>Created At:</strong> {new Date(sensor.CreatedAt).toLocaleString()}</p>
+                <p><strong>Updated At:</strong> {new Date(sensor.UpdatedAt).toLocaleString()}</p>
+              </div>
             </div>
           ))
         ) : (
