@@ -11,8 +11,12 @@
 
 //   useEffect(() => {
 //     const fetchSensorDetails = async () => {
+//       const patientID = localStorage.getItem('patientID'); // Retrieve PatientID from localStorage
+
 //       try {
-//         const response = await axios.get('https://backend-login-1-xc0i.onrender.com/getsensordetails');
+//         const response = await axios.get('https://backend-login-1-xc0i.onrender.com/getsensordetails', {
+//           params: { PatientID: patientID }, // Pass PatientID as a query parameter
+//         });
 //         console.log("Fetched sensor details:", response.data);
 //         setSensors(response.data);
 //       } catch (error) {
@@ -101,8 +105,6 @@
 
 // export default SensorManagement;
 
-// components/SensorManagement.js
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -114,22 +116,28 @@ const SensorManagement = () => {
   const [sensors, setSensors] = useState([]);
   const navigate = useNavigate();
 
+  // Get userID from localStorage (set during login)
+  const userID = localStorage.getItem('userID');
+
   useEffect(() => {
     const fetchSensorDetails = async () => {
-      const patientID = localStorage.getItem('patientID'); // Retrieve PatientID from localStorage
-
       try {
-        const response = await axios.get('https://backend-login-1-xc0i.onrender.com/getsensordetails', {
-          params: { PatientID: patientID }, // Pass PatientID as a query parameter
-        });
+        // Fetch only sensors associated with the logged-in user's userID
+        const response = await axios.get(`https://backend-login-1-xc0i.onrender.com/getsensordetails/${userID}`);
         console.log("Fetched sensor details:", response.data);
         setSensors(response.data);
       } catch (error) {
         console.error("Error fetching sensor details:", error.response?.data || error.message);
       }
     };
-    fetchSensorDetails();
-  }, []);
+
+    if (userID) {
+      fetchSensorDetails();
+    } else {
+      console.error("User ID not found. Please log in.");
+      navigate('/login');
+    }
+  }, [userID, navigate]);
 
   const handleAddOrUpdateSensor = (sensorDetails) => {
     if (editingSensor) {
@@ -193,7 +201,7 @@ const SensorManagement = () => {
             </div>
           ))
         ) : (
-          <p>No sensor details available.</p>
+          <p>No sensor details available for this patient.</p>
         )}
       </div>
 
