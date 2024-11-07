@@ -136,10 +136,12 @@ import axios from 'axios';
 
 const SensorManagement = () => {
   const [isValuesModalOpen, setValuesModalOpen] = useState(false);
+  const [isEditModalOpen, setEditModalOpen] = useState(false);
   const [sensors, setSensors] = useState([]);
+  const [sensorValues, setSensorValues] = useState([]);
+  const [editingSensor, setEditingSensor] = useState(null);
   const navigate = useNavigate();
 
-  // Get userID from localStorage (set during login)
   const userID = localStorage.getItem('userID');
 
   // Fetch sensors for the logged-in user
@@ -147,7 +149,6 @@ const SensorManagement = () => {
     const fetchSensorDetails = async () => {
       try {
         const response = await axios.get(`https://backend-login-1-xc0i.onrender.com/getsensordetails/${userID}`);
-        console.log("Fetched sensor details:", response.data);
         setSensors(response.data);
       } catch (error) {
         console.error("Error fetching sensor details:", error.response?.data || error.message);
@@ -157,10 +158,42 @@ const SensorManagement = () => {
     if (userID) {
       fetchSensorDetails();
     } else {
-      console.error("User ID not found. Please log in.");
       navigate('/login');
     }
   }, [userID, navigate]);
+
+  // Fetch top 10 sensor values for a specific sensor
+  const fetchSensorValues = async (sensorID) => {
+    try {
+      const response = await axios.get(`https://backend-login-1-xc0i.onrender.com/getsensorvalues/${sensorID}`);
+      setSensorValues(response.data);
+      setValuesModalOpen(true);
+    } catch (error) {
+      console.error("Error fetching sensor values:", error.response?.data || error.message);
+    }
+  };
+
+  // Open the edit modal and set the sensor to be edited
+  const handleEditSensor = (sensor) => {
+    setEditingSensor(sensor);
+    setEditModalOpen(true);
+  };
+
+  // Update sensor details
+  const handleUpdateSensor = async (updatedSensor) => {
+    try {
+      await axios.put(`https://backend-login-1-xc0i.onrender.com/updatesensordetails/${updatedSensor.SensorID}`, updatedSensor);
+      setSensors((prevSensors) =>
+        prevSensors.map((sensor) =>
+          sensor.SensorID === updatedSensor.SensorID ? updatedSensor : sensor
+        )
+      );
+      setEditModalOpen(false);
+      setEditingSensor(null);
+    } catch (error) {
+      console.error("Error updating sensor:", error.response?.data || error.message);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 p-8">
@@ -187,7 +220,7 @@ const SensorManagement = () => {
           sensors.map((sensor) => (
             <div
               key={sensor.SensorID}
-              className="bg-white p-6 rounded shadow-lg hover:shadow-xl cursor-pointer"
+              className="bg-white p-6 rounded shadow-lg hover:shadow-xl"
             >
               <h3 className="font-semibold text-xl mb-4">{sensor.SensorType} (ID: {sensor.SensorID})</h3>
               <div className="text-sm text-gray-700">
@@ -202,6 +235,18 @@ const SensorManagement = () => {
                 <p><strong>Created At:</strong> {new Date(sensor.CreatedAt).toLocaleString()}</p>
                 <p><strong>Updated At:</strong> {new Date(sensor.UpdatedAt).toLocaleString()}</p>
               </div>
+              <button
+                onClick={() => fetchSensorValues(sensor.SensorID)}
+                className="bg-blue-600 text-white px-4 py-2 rounded mt-4"
+              >
+                View Sensor Values
+              </button>
+              <button
+                onClick={() => handleEditSensor(sensor)}
+                className="bg-green-600 text-white px-4 py-2 rounded mt-4 ml-2"
+              >
+                Update
+              </button>
             </div>
           ))
         ) : (
@@ -210,23 +255,83 @@ const SensorManagement = () => {
       </div>
 
       {isValuesModalOpen && (
-        <SensorValuesModal onClose={() => setValuesModalOpen(false)} />
+        <SensorValuesModal
+          values={sensorValues}
+          onClose={() => setValuesModalOpen(false)}
+        />
+      )}
+
+      {isEditModalOpen && editingSensor && (
+        <EditSensorModal
+          sensor={editingSensor}
+          onClose={() => setEditModalOpen(false)}
+          onSave={handleUpdateSensor}
+        />
       )}
     </div>
   );
 };
 
-const SensorValuesModal = ({ onClose }) => (
+// Modal to display top 10 sensor values
+const SensorValuesModal = ({ values, onClose }) => (
   <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
     <div className="bg-white p-6 rounded shadow-lg max-w-lg w-full">
-      <h2 className="text-xl font-semibold mb-4">Sensor Values (Top 30)</h2>
-      {/* Placeholder content since `sensorValues` is removed */}
-      <p>No values available in this version.</p>
+      <h2 className="text-xl font-semibold mb-4">Sensor Values (Top 10)</h2>
+      <ul className="space-y-2">
+        {values.length > 0 ? (
+          values.map((value, index) => (
+            <li key={index} className="text-gray-700">
+              <strong>Value:</strong> {value.SensorValue} | <strong>Updated At:</strong> {new Date(value.UpdatedAt).toLocaleString()}
+            </li>
+          ))
+        ) : (
+          <p>No values found.</p>
+        )}
+      </ul>
       <button onClick={onClose} className="mt-4 bg-red-500 text-white px-4 py-2 rounded">
         Close
       </button>
     </div>
   </div>
 );
+
+// Modal to edit sensor details
+const EditSensorModal = ({ sensor, onClose, onSave }) => {
+  const [updatedSensor, setUpdatedSensor] = useState({ ...sensor });
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setUpdatedSensor((prev) => ({ ...prev, [name]: value }));
+  };
+
+  return (
+    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+      <div className="bg-white p-6 rounded shadow-lg max-w-lg w-full">
+        <h2 className="text-xl font-semibold mb-4">Edit Sensor</h2>
+        <div className="space-y-2">
+          <input type="text" name="SensorType" value={updatedSensor.SensorType} onChange={handleChange} placeholder="Sensor Type" />
+          <input type="number" name="RangeMin" value={updatedSensor.RangeMin} onChange={handleChange} placeholder="Range Min" />
+          <input type="number" name="RangeMax" value={updatedSensor.RangeMax} onChange={handleChange} placeholder="Range Max" />
+          <input type="number" name="AbsoluteMin" value={updatedSensor.AbsoluteMin} onChange={handleChange} placeholder="Absolute Min" />
+          <input type="number" name="AbsoluteMax" value={updatedSensor.AbsoluteMax} onChange={handleChange} placeholder="Absolute Max" />
+          <input type="text" name="Status" value={updatedSensor.Status} onChange={handleChange} placeholder="Status" />
+          <input type="text" name="PatientID" value={updatedSensor.PatientID} onChange={handleChange} placeholder="Patient ID" />
+          <input type="text" name="Location" value={updatedSensor.Location} onChange={handleChange} placeholder="Location" />
+          <input type="number" name="DataCollectionFrequency" value={updatedSensor.DataCollectionFrequency} onChange={handleChange} placeholder="Data Collection Frequency" />
+          <input type="text" name="SensorCategory" value={updatedSensor.SensorCategory} onChange={handleChange} placeholder="Sensor Category" />
+        </div>
+        <button
+          onClick={() => onSave(updatedSensor)}
+          className="mt-4 bg-green-500 text-white px-4 py-2 rounded"
+        >
+          Save Changes
+        </button>
+        <button onClick={onClose} className="mt-4 bg-red-500 text-white px-4 py-2 rounded ml-2">
+          Cancel
+        </button>
+      </div>
+    </div>
+  );
+};
 
 export default SensorManagement;
