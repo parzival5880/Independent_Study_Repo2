@@ -131,8 +131,32 @@
 
 
 import React, { useState, useEffect } from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Loader2, ArrowLeft, Eye, Edit2, RefreshCw } from 'lucide-react';
+
+// Custom Card components using Tailwind
+const Card = ({ className, children, ...props }) => (
+  <div className={`bg-white rounded-lg shadow-sm ${className}`} {...props}>
+    {children}
+  </div>
+);
+
+const CardHeader = ({ className, children, ...props }) => (
+  <div className={`p-6 ${className}`} {...props}>
+    {children}
+  </div>
+);
+
+const CardTitle = ({ className, children, ...props }) => (
+  <h3 className={`text-lg font-semibold text-gray-900 ${className}`} {...props}>
+    {children}
+  </h3>
+);
+
+const CardContent = ({ className, children, ...props }) => (
+  <div className={`p-6 pt-0 ${className}`} {...props}>
+    {children}
+  </div>
+);
 
 const SensorManagement = () => {
   const [isValuesModalOpen, setValuesModalOpen] = useState(false);
@@ -213,7 +237,6 @@ const SensorManagement = () => {
   };
 
   const handleBackToDashboard = () => {
-    // You can replace this with your preferred navigation method
     window.location.href = '/dashboard';
   };
 
@@ -245,7 +268,7 @@ const SensorManagement = () => {
           {sensors.length > 0 ? (
             sensors.map((sensor) => (
               <Card key={sensor.SensorID} className="hover:shadow-lg transition-shadow duration-200">
-                <CardHeader className="pb-4">
+                <CardHeader>
                   <CardTitle className="flex items-center justify-between">
                     <span className="text-xl font-semibold">{sensor.SensorType}</span>
                     <span className="text-sm text-gray-500">ID: {sensor.SensorID}</span>
