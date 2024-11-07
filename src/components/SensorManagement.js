@@ -163,18 +163,6 @@ const SensorManagement = () => {
     }
   }, [userID, navigate]);
 
-  // Fetch top 30 sensor values for a specific sensor
-  const fetchSensorValues = async (sensorID) => {
-    try {
-      const response = await axios.get(`https://backend-login-1-xc0i.onrender.com/getsensorvalues/${sensorID}?limit=30`);
-      console.log("Fetched sensor values:", response.data);
-      setSensorValues(response.data);
-      setValuesModalOpen(true);
-    } catch (error) {
-      console.error("Error fetching sensor values:", error.response?.data || error.message);
-    }
-  };
-
   return (
     <div className="min-h-screen bg-gray-50 p-8">
       <h1 className="text-3xl font-semibold mb-8">Sensor Management</h1>
