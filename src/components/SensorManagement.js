@@ -138,7 +138,6 @@ import AddSensorModal from './AddSensorModal';
 const SensorManagement = () => {
   const [isModalOpen, setModalOpen] = useState(false);
   const [isValuesModalOpen, setValuesModalOpen] = useState(false);
-  const [editingSensor, setEditingSensor] = useState(null);
   const [sensors, setSensors] = useState([]);
   const [sensorValues, setSensorValues] = useState([]);
   const navigate = useNavigate();
@@ -178,67 +177,25 @@ const SensorManagement = () => {
     }
   };
 
-  // Function to log actions (Read or Update) for a specific sensor
-  const logSensorAction = async (sensorID, action) => {
-    try {
-      await axios.post('https://backend-login-1-xc0i.onrender.com/sensoraccesslogs', {
-        SensorID: sensorID,
-        UserID: userID,
-        Action: action
-      });
-      console.log(`Logged action: ${action} for SensorID: ${sensorID}`);
-    } catch (error) {
-      console.error("Error logging sensor action:", error.response?.data || error.message);
-    }
-  };
-
-  // Handle click to open sensor details (Read action)
-  const handleViewSensor = (sensor) => {
-    logSensorAction(sensor.SensorID, "Read");  // Log the Read action
-    setEditingSensor(sensor);
-    setModalOpen(true);
-  };
-
-  // Handle click to view sensor values (fetch top 30 entries)
-  const handleViewSensorValues = (sensorID) => {
-    fetchSensorValues(sensorID);
-    logSensorAction(sensorID, "View Values");  // Log the View Values action
-  };
-
-  // Handle sensor update (Update action)
-  const handleAddOrUpdateSensor = (sensorDetails) => {
-    if (editingSensor) {
-      setSensors((prevSensors) =>
-        prevSensors.map((sensor) =>
-          sensor.SensorID === editingSensor.SensorID ? { ...sensorDetails, SensorID: sensor.SensorID } : sensor
-        )
-      );
-      logSensorAction(editingSensor.SensorID, "Update");  // Log the Update action
-      setEditingSensor(null);
-    } else {
-      const newSensor = { ...sensorDetails, SensorID: Date.now().toString() };
-      setSensors((prevSensors) => [...prevSensors, newSensor]);
-    }
-    setModalOpen(false);
-  };
-
   return (
     <div className="min-h-screen bg-gray-50 p-8">
       <h1 className="text-3xl font-semibold mb-8">Sensor Management</h1>
 
-      <button
-        onClick={() => navigate('/dashboard')}
-        className="bg-gray-600 text-white px-4 py-2 rounded mb-4"
-      >
-        ← Back to Dashboard
-      </button>
+      <div className="flex mb-4">
+        <button
+          onClick={() => navigate('/dashboard')}
+          className="bg-gray-600 text-white px-4 py-2 rounded mr-4"
+        >
+          ← Back to Dashboard
+        </button>
 
-      <button
-        onClick={() => setModalOpen(true)}
-        className="bg-blue-600 text-white px-4 py-2 rounded mb-4 ml-4"
-      >
-        + Add Sensor
-      </button>
+        <button
+          onClick={() => setValuesModalOpen(true)}
+          className="bg-blue-600 text-white px-4 py-2 rounded"
+        >
+          View Sensor Values
+        </button>
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {sensors.length > 0 ? (
@@ -260,32 +217,12 @@ const SensorManagement = () => {
                 <p><strong>Created At:</strong> {new Date(sensor.CreatedAt).toLocaleString()}</p>
                 <p><strong>Updated At:</strong> {new Date(sensor.UpdatedAt).toLocaleString()}</p>
               </div>
-              <button
-                onClick={() => handleViewSensor(sensor)}
-                className="bg-green-600 text-white px-4 py-2 rounded mt-4"
-              >
-                View Sensor Details
-              </button>
-              <button
-                onClick={() => handleViewSensorValues(sensor.SensorID)}
-                className="bg-blue-600 text-white px-4 py-2 rounded mt-4 ml-2"
-              >
-                View Sensor Values
-              </button>
             </div>
           ))
         ) : (
           <p>No sensor details available for this patient.</p>
         )}
       </div>
-
-      {isModalOpen && (
-        <AddSensorModal
-          onClose={() => setModalOpen(false)}
-          onSubmit={handleAddOrUpdateSensor}
-          initialData={editingSensor}
-        />
-      )}
 
       {isValuesModalOpen && (
         <SensorValuesModal
