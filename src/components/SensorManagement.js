@@ -223,13 +223,6 @@ const SensorManagement = () => {
         >
           ← Back to Dashboard
         </button>
-
-        <button
-          onClick={() => handleViewSensorValues(editingSensor?.SensorID)}
-          className="bg-blue-600 text-white px-4 py-2 rounded"
-        >
-          View Sensor Values
-        </button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -238,7 +231,6 @@ const SensorManagement = () => {
             <div
               key={sensor.SensorID}
               className="bg-white p-6 rounded shadow-lg hover:shadow-xl cursor-pointer"
-              onClick={() => handleViewSensor(sensor)}
             >
               <h3 className="font-semibold text-xl mb-4">{sensor.SensorType} (ID: {sensor.SensorID})</h3>
               <div className="text-sm text-gray-700">
@@ -253,6 +245,12 @@ const SensorManagement = () => {
                 <p><strong>Created At:</strong> {new Date(sensor.CreatedAt).toLocaleString()}</p>
                 <p><strong>Updated At:</strong> {new Date(sensor.UpdatedAt).toLocaleString()}</p>
               </div>
+              <button
+                onClick={() => handleViewSensorValues(sensor.SensorID)}
+                className="bg-blue-600 text-white px-4 py-2 rounded mt-4"
+              >
+                View Sensor Values
+              </button>
             </div>
           ))
         ) : (
