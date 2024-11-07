@@ -137,7 +137,6 @@ import axios from 'axios';
 const SensorManagement = () => {
   const [isValuesModalOpen, setValuesModalOpen] = useState(false);
   const [sensors, setSensors] = useState([]);
-  const [sensorValues, setSensorValues] = useState([]);
   const navigate = useNavigate();
 
   // Get userID from localStorage (set during login)
@@ -211,30 +210,18 @@ const SensorManagement = () => {
       </div>
 
       {isValuesModalOpen && (
-        <SensorValuesModal
-          values={sensorValues}
-          onClose={() => setValuesModalOpen(false)}
-        />
+        <SensorValuesModal onClose={() => setValuesModalOpen(false)} />
       )}
     </div>
   );
 };
 
-const SensorValuesModal = ({ values, onClose }) => (
+const SensorValuesModal = ({ onClose }) => (
   <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
     <div className="bg-white p-6 rounded shadow-lg max-w-lg w-full">
       <h2 className="text-xl font-semibold mb-4">Sensor Values (Top 30)</h2>
-      <ul className="space-y-2">
-        {values.length > 0 ? (
-          values.map((value, index) => (
-            <li key={index} className="text-gray-700">
-              <strong>Value:</strong> {value.SensorValue} | <strong>Updated At:</strong> {new Date(value.UpdatedAt).toLocaleString()}
-            </li>
-          ))
-        ) : (
-          <p>No values found.</p>
-        )}
-      </ul>
+      {/* Placeholder content since `sensorValues` is removed */}
+      <p>No values available in this version.</p>
       <button onClick={onClose} className="mt-4 bg-red-500 text-white px-4 py-2 rounded">
         Close
       </button>
