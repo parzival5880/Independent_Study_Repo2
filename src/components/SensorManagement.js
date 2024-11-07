@@ -144,7 +144,6 @@ const SensorManagement = () => {
 
   const userID = localStorage.getItem('userID');
 
-  // Fetch sensors for the logged-in user
   useEffect(() => {
     const fetchSensorDetails = async () => {
       try {
@@ -158,14 +157,14 @@ const SensorManagement = () => {
     if (userID) {
       fetchSensorDetails();
     } else {
+      console.error("User ID not found. Please log in.");
       navigate('/login');
     }
   }, [userID, navigate]);
 
-  // Fetch top 10 sensor values for a specific sensor
   const fetchSensorValues = async (sensorID) => {
     try {
-      const response = await axios.get(`https://backend-login-1-xc0i.onrender.com/getsensorvalues/${sensorID}`);
+      const response = await axios.get(`https://backend-login-1-xc0i.onrender.com/getsensorvalues/${sensorID}?limit=10`);
       setSensorValues(response.data);
       setValuesModalOpen(true);
     } catch (error) {
@@ -173,23 +172,11 @@ const SensorManagement = () => {
     }
   };
 
-  // Open the edit modal and set the sensor to be edited
-  const handleEditSensor = (sensor) => {
-    setEditingSensor(sensor);
-    setEditModalOpen(true);
-  };
-
-  // Update sensor details
   const handleUpdateSensor = async (updatedSensor) => {
     try {
       await axios.put(`https://backend-login-1-xc0i.onrender.com/updatesensordetails/${updatedSensor.SensorID}`, updatedSensor);
-      setSensors((prevSensors) =>
-        prevSensors.map((sensor) =>
-          sensor.SensorID === updatedSensor.SensorID ? updatedSensor : sensor
-        )
-      );
+      setSensors(sensors.map((sensor) => sensor.SensorID === updatedSensor.SensorID ? updatedSensor : sensor));
       setEditModalOpen(false);
-      setEditingSensor(null);
     } catch (error) {
       console.error("Error updating sensor:", error.response?.data || error.message);
     }
@@ -220,7 +207,7 @@ const SensorManagement = () => {
           sensors.map((sensor) => (
             <div
               key={sensor.SensorID}
-              className="bg-white p-6 rounded shadow-lg hover:shadow-xl"
+              className="bg-white p-6 rounded shadow-lg hover:shadow-xl cursor-pointer"
             >
               <h3 className="font-semibold text-xl mb-4">{sensor.SensorType} (ID: {sensor.SensorID})</h3>
               <div className="text-sm text-gray-700">
@@ -236,14 +223,8 @@ const SensorManagement = () => {
                 <p><strong>Updated At:</strong> {new Date(sensor.UpdatedAt).toLocaleString()}</p>
               </div>
               <button
-                onClick={() => fetchSensorValues(sensor.SensorID)}
-                className="bg-blue-600 text-white px-4 py-2 rounded mt-4"
-              >
-                View Sensor Values
-              </button>
-              <button
-                onClick={() => handleEditSensor(sensor)}
-                className="bg-green-600 text-white px-4 py-2 rounded mt-4 ml-2"
+                onClick={() => { setEditingSensor(sensor); setEditModalOpen(true); }}
+                className="bg-green-600 text-white px-4 py-2 rounded mt-4"
               >
                 Update
               </button>
@@ -261,18 +242,17 @@ const SensorManagement = () => {
         />
       )}
 
-      {isEditModalOpen && editingSensor && (
+      {isEditModalOpen && (
         <EditSensorModal
           sensor={editingSensor}
-          onClose={() => setEditModalOpen(false)}
           onSave={handleUpdateSensor}
+          onClose={() => setEditModalOpen(false)}
         />
       )}
     </div>
   );
 };
 
-// Modal to display top 10 sensor values
 const SensorValuesModal = ({ values, onClose }) => (
   <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
     <div className="bg-white p-6 rounded shadow-lg max-w-lg w-full">
@@ -295,9 +275,8 @@ const SensorValuesModal = ({ values, onClose }) => (
   </div>
 );
 
-// Modal to edit sensor details
-const EditSensorModal = ({ sensor, onClose, onSave }) => {
-  const [updatedSensor, setUpdatedSensor] = useState({ ...sensor });
+const EditSensorModal = ({ sensor, onSave, onClose }) => {
+  const [updatedSensor, setUpdatedSensor] = useState(sensor);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -306,29 +285,33 @@ const EditSensorModal = ({ sensor, onClose, onSave }) => {
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-      <div className="bg-white p-6 rounded shadow-lg max-w-lg w-full">
+      <div className="bg-white p-6 rounded shadow-lg max-w-md w-full">
         <h2 className="text-xl font-semibold mb-4">Edit Sensor</h2>
-        <div className="space-y-2">
-          <input type="text" name="SensorType" value={updatedSensor.SensorType} onChange={handleChange} placeholder="Sensor Type" />
-          <input type="number" name="RangeMin" value={updatedSensor.RangeMin} onChange={handleChange} placeholder="Range Min" />
-          <input type="number" name="RangeMax" value={updatedSensor.RangeMax} onChange={handleChange} placeholder="Range Max" />
-          <input type="number" name="AbsoluteMin" value={updatedSensor.AbsoluteMin} onChange={handleChange} placeholder="Absolute Min" />
-          <input type="number" name="AbsoluteMax" value={updatedSensor.AbsoluteMax} onChange={handleChange} placeholder="Absolute Max" />
-          <input type="text" name="Status" value={updatedSensor.Status} onChange={handleChange} placeholder="Status" />
-          <input type="text" name="PatientID" value={updatedSensor.PatientID} onChange={handleChange} placeholder="Patient ID" />
-          <input type="text" name="Location" value={updatedSensor.Location} onChange={handleChange} placeholder="Location" />
-          <input type="number" name="DataCollectionFrequency" value={updatedSensor.DataCollectionFrequency} onChange={handleChange} placeholder="Data Collection Frequency" />
-          <input type="text" name="SensorCategory" value={updatedSensor.SensorCategory} onChange={handleChange} placeholder="Sensor Category" />
+        <div className="grid grid-cols-2 gap-4">
+          {Object.entries(updatedSensor).map(([key, value]) => (
+            <React.Fragment key={key}>
+              <label className="text-gray-700 font-semibold">{key}:</label>
+              <input
+                type="text"
+                name={key}
+                value={value}
+                onChange={handleChange}
+                className="border border-gray-300 p-2 rounded"
+              />
+            </React.Fragment>
+          ))}
         </div>
-        <button
-          onClick={() => onSave(updatedSensor)}
-          className="mt-4 bg-green-500 text-white px-4 py-2 rounded"
-        >
-          Save Changes
-        </button>
-        <button onClick={onClose} className="mt-4 bg-red-500 text-white px-4 py-2 rounded ml-2">
-          Cancel
-        </button>
+        <div className="flex justify-end mt-4">
+          <button
+            onClick={() => onSave(updatedSensor)}
+            className="bg-green-500 text-white px-4 py-2 rounded mr-2"
+          >
+            Save Changes
+          </button>
+          <button onClick={onClose} className="bg-red-500 text-white px-4 py-2 rounded">
+            Cancel
+          </button>
+        </div>
       </div>
     </div>
   );
