@@ -139,25 +139,13 @@ const SensorManagement = () => {
   const [isEditModalOpen, setEditModalOpen] = useState(false);
   const [sensors, setSensors] = useState([]);
   const [sensorValues, setSensorValues] = useState([]);
-  const [editingSensor, setEditingSensor] = useState(null);
+  const [selectedSensor, setSelectedSensor] = useState(null);
   const navigate = useNavigate();
 
+  // Get userID from localStorage (set during login)
   const userID = localStorage.getItem('userID');
 
-  // Function to log actions in the access log
-  const logSensorAction = async (sensorID, action) => {
-    try {
-      await axios.post('https://backend-login-1-xc0i.onrender.com/sensoraccesslogs', {
-        SensorID: sensorID,
-        UserID: userID,
-        Action: action
-      });
-      console.log(`Logged action: ${action} for SensorID: ${sensorID}`);
-    } catch (error) {
-      console.error("Error logging sensor action:", error.response?.data || error.message);
-    }
-  };
-
+  // Fetch sensors for the logged-in user
   useEffect(() => {
     const fetchSensorDetails = async () => {
       try {
@@ -171,34 +159,44 @@ const SensorManagement = () => {
     if (userID) {
       fetchSensorDetails();
     } else {
-      console.error("User ID not found. Please log in.");
       navigate('/login');
     }
   }, [userID, navigate]);
 
-  const handleViewSensorValues = async (sensorID) => {
+  // Fetch top 10 sensor values for a specific sensor
+  const fetchSensorValues = async (sensorID) => {
     try {
       const response = await axios.get(`https://backend-login-1-xc0i.onrender.com/getsensorvalues/${sensorID}?limit=10`);
       setSensorValues(response.data);
       setValuesModalOpen(true);
-
-      // Log the "Read" action for viewing sensor values
-      await logSensorAction(sensorID, "Read");
     } catch (error) {
       console.error("Error fetching sensor values:", error.response?.data || error.message);
     }
   };
 
-  const handleUpdateSensor = async (updatedSensor) => {
+  // Handle view sensor values
+  const handleViewSensorValues = (sensor) => {
+    fetchSensorValues(sensor.SensorID);
+  };
+
+  // Handle edit sensor
+  const handleEditSensor = (sensor) => {
+    setSelectedSensor(sensor);
+    setEditModalOpen(true);
+  };
+
+  // Update sensor details
+  const updateSensorDetails = async (updatedSensor) => {
     try {
       await axios.put(`https://backend-login-1-xc0i.onrender.com/updatesensordetails/${updatedSensor.SensorID}`, updatedSensor);
-      setSensors(sensors.map((sensor) => sensor.SensorID === updatedSensor.SensorID ? updatedSensor : sensor));
+      setSensors((prevSensors) =>
+        prevSensors.map((sensor) =>
+          sensor.SensorID === updatedSensor.SensorID ? updatedSensor : sensor
+        )
+      );
       setEditModalOpen(false);
-
-      // Log the "Update" action after successfully updating the sensor
-      await logSensorAction(updatedSensor.SensorID, "Update");
     } catch (error) {
-      console.error("Error updating sensor:", error.response?.data || error.message);
+      console.error("Error updating sensor details:", error.response?.data || error.message);
     }
   };
 
@@ -228,29 +226,19 @@ const SensorManagement = () => {
             <div
               key={sensor.SensorID}
               className="bg-white p-6 rounded shadow-lg hover:shadow-xl cursor-pointer"
+              onClick={() => handleEditSensor(sensor)}
             >
               <h3 className="font-semibold text-xl mb-4">{sensor.SensorType} (ID: {sensor.SensorID})</h3>
               <div className="text-sm text-gray-700">
                 <p><strong>Range:</strong> {sensor.RangeMin} - {sensor.RangeMax}</p>
-                <p><strong>Absolute Range:</strong> {sensor.AbsoluteMin} - {sensor.AbsoluteMax}</p>
                 <p><strong>Current Value:</strong> {sensor.CurrentValue}</p>
                 <p><strong>Status:</strong> {sensor.Status}</p>
                 <p><strong>Patient ID:</strong> {sensor.PatientID}</p>
                 <p><strong>Location:</strong> {sensor.Location}</p>
-                <p><strong>Data Collection Frequency:</strong> {sensor.DataCollectionFrequency} minutes</p>
-                <p><strong>Sensor Category:</strong> {sensor.SensorCategory}</p>
-                <p><strong>Created At:</strong> {new Date(sensor.CreatedAt).toLocaleString()}</p>
-                <p><strong>Updated At:</strong> {new Date(sensor.UpdatedAt).toLocaleString()}</p>
               </div>
               <button
-                onClick={() => { setEditingSensor(sensor); setEditModalOpen(true); }}
-                className="bg-green-600 text-white px-4 py-2 rounded mt-4"
-              >
-                Update
-              </button>
-              <button
-                onClick={() => handleViewSensorValues(sensor.SensorID)}
-                className="bg-blue-600 text-white px-4 py-2 rounded mt-4 ml-2"
+                onClick={() => handleViewSensorValues(sensor)}
+                className="bg-blue-600 text-white px-4 py-2 rounded mt-4"
               >
                 View Sensor Values
               </button>
@@ -268,10 +256,10 @@ const SensorManagement = () => {
         />
       )}
 
-      {isEditModalOpen && (
+      {isEditModalOpen && selectedSensor && (
         <EditSensorModal
-          sensor={editingSensor}
-          onSave={handleUpdateSensor}
+          sensor={selectedSensor}
+          onSave={updateSensorDetails}
           onClose={() => setEditModalOpen(false)}
         />
       )}
@@ -302,39 +290,143 @@ const SensorValuesModal = ({ values, onClose }) => (
 );
 
 const EditSensorModal = ({ sensor, onSave, onClose }) => {
-  const [updatedSensor, setUpdatedSensor] = useState(sensor);
+  const [formData, setFormData] = useState({ ...sensor });
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setUpdatedSensor((prev) => ({ ...prev, [name]: value }));
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSave = () => {
+    onSave(formData);
   };
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-      <div className="bg-white p-6 rounded shadow-lg max-w-md w-full">
-        <h2 className="text-xl font-semibold mb-4">Edit Sensor</h2>
-        <div className="grid grid-cols-2 gap-4">
-          {Object.entries(updatedSensor).map(([key, value]) => (
-            <React.Fragment key={key}>
-              <label className="text-gray-700 font-semibold">{key}:</label>
-              <input
-                type="text"
-                name={key}
-                value={value}
-                onChange={handleChange}
-                className="border border-gray-300 p-2 rounded"
-              />
-            </React.Fragment>
-          ))}
-        </div>
-        <div className="flex justify-end mt-4">
+      <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-lg">
+        <h2 className="text-xl font-semibold mb-6 text-center">Edit Sensor</h2>
+        <form className="grid grid-cols-2 gap-4">
+          <div className="col-span-2">
+            <label className="block text-sm font-medium text-gray-700">Sensor Type</label>
+            <input
+              type="text"
+              name="SensorType"
+              value={formData.SensorType}
+              onChange={handleChange}
+              className="mt-1 p-2 border border-gray-300 rounded w-full"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Range Min</label>
+            <input
+              type="number"
+              name="RangeMin"
+              value={formData.RangeMin}
+              onChange={handleChange}
+              className="mt-1 p-2 border border-gray-300 rounded w-full"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Range Max</label>
+            <input
+              type="number"
+              name="RangeMax"
+              value={formData.RangeMax}
+              onChange={handleChange}
+              className="mt-1 p-2 border border-gray-300 rounded w-full"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Absolute Min</label>
+            <input
+              type="number"
+              name="AbsoluteMin"
+              value={formData.AbsoluteMin}
+              onChange={handleChange}
+              className="mt-1 p-2 border border-gray-300 rounded w-full"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Absolute Max</label>
+            <input
+              type="number"
+              name="AbsoluteMax"
+              value={formData.AbsoluteMax}
+              onChange={handleChange}
+              className="mt-1 p-2 border border-gray-300 rounded w-full"
+            />
+          </div>
+          <div className="col-span-2">
+            <label className="block text-sm font-medium text-gray-700">Current Value</label>
+            <input
+              type="number"
+              name="CurrentValue"
+              value={formData.CurrentValue}
+              onChange={handleChange}
+              className="mt-1 p-2 border border-gray-300 rounded w-full"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Status</label>
+            <input
+              type="text"
+              name="Status"
+              value={formData.Status}
+              onChange={handleChange}
+              className="mt-1 p-2 border border-gray-300 rounded w-full"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Patient ID</label>
+            <input
+              type="text"
+              name="PatientID"
+              value={formData.PatientID}
+              onChange={handleChange}
+              className="mt-1 p-2 border border-gray-300 rounded w-full"
+            />
+          </div>
+          <div className="col-span-2">
+            <label className="block text-sm font-medium text-gray-700">Location</label>
+            <input
+              type="text"
+              name="Location"
+              value={formData.Location}
+              onChange={handleChange}
+              className="mt-1 p-2 border border-gray-300 rounded w-full"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Data Collection Frequency (min)</label>
+            <input
+              type="number"
+              name="DataCollectionFrequency"
+              value={formData.DataCollectionFrequency}
+              onChange={handleChange}
+              className="mt-1 p-2 border border-gray-300 rounded w-full"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Sensor Category</label>
+            <input
+              type="text"
+              name="SensorCategory"
+              value={formData.SensorCategory}
+              onChange={handleChange}
+              className="mt-1 p-2 border border-gray-300 rounded w-full"
+            />
+          </div>
+        </form>
+        <div className="flex justify-end mt-6 space-x-4">
           <button
-            onClick={() => onSave(updatedSensor)}
-            className="bg-green-500 text-white px-4 py-2 rounded mr-2"
+            onClick={handleSave}
+            className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
           >
             Save Changes
           </button>
-          <button onClick={onClose} className="bg-red-500 text-white px-4 py-2 rounded">
+          <button
+            onClick={onClose}
+            className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+          >
             Cancel
           </button>
         </div>
