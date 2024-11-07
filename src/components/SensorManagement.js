@@ -142,10 +142,8 @@ const SensorManagement = () => {
   const [sensorValues, setSensorValues] = useState([]);
   const navigate = useNavigate();
 
-  // Get userID from localStorage (set during login)
   const userID = localStorage.getItem('userID');
 
-  // Fetch sensors for the logged-in user
   useEffect(() => {
     const fetchSensorDetails = async () => {
       try {
@@ -164,7 +162,6 @@ const SensorManagement = () => {
     }
   }, [userID, navigate]);
 
-  // Log actions (Read or Update) for a specific sensor
   const logSensorAction = async (sensorID, action) => {
     try {
       await axios.post('https://backend-login-1-xc0i.onrender.com/sensoraccesslogs', {
@@ -178,14 +175,12 @@ const SensorManagement = () => {
     }
   };
 
-  // Handle click to open sensor details (Read action)
   const handleViewSensor = (sensor) => {
-    logSensorAction(sensor.SensorID, "Read");  // Log the Read action
+    logSensorAction(sensor.SensorID, "Read");
     setEditingSensor(sensor);
     setModalOpen(true);
   };
 
-  // Handle click to fetch and view top 10 sensor values
   const handleViewSensorValues = async (sensorID) => {
     try {
       const response = await axios.get(`https://backend-login-1-xc0i.onrender.com/getsensorvalues/${sensorID}`);
@@ -196,7 +191,6 @@ const SensorManagement = () => {
     }
   };
 
-  // Handle sensor update (Update action)
   const handleAddOrUpdateSensor = async (sensorDetails) => {
     if (editingSensor) {
       try {
@@ -206,7 +200,7 @@ const SensorManagement = () => {
             sensor.SensorID === editingSensor.SensorID ? { ...sensorDetails, SensorID: sensor.SensorID } : sensor
           )
         );
-        logSensorAction(editingSensor.SensorID, "Update");  // Log the Update action
+        logSensorAction(editingSensor.SensorID, "Update");
         setEditingSensor(null);
       } catch (error) {
         console.error("Error updating sensor details:", error.response?.data || error.message);
@@ -244,7 +238,7 @@ const SensorManagement = () => {
             <div
               key={sensor.SensorID}
               className="bg-white p-6 rounded shadow-lg hover:shadow-xl cursor-pointer"
-              onClick={() => handleViewSensor(sensor)}  // Handle Read action on click
+              onClick={() => handleViewSensor(sensor)}
             >
               <h3 className="font-semibold text-xl mb-4">{sensor.SensorType} (ID: {sensor.SensorID})</h3>
               <div className="text-sm text-gray-700">
@@ -288,7 +282,8 @@ const EditSensorModal = ({ sensor, onSave, onClose }) => {
   const [formData, setFormData] = useState({ ...sensor });
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSave = () => {
@@ -300,7 +295,18 @@ const EditSensorModal = ({ sensor, onSave, onClose }) => {
       <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-lg">
         <h2 className="text-xl font-semibold mb-6 text-center">Edit Sensor</h2>
         <form className="grid grid-cols-2 gap-4">
-          {/* Input fields for sensor properties */}
+          {Object.keys(formData).map((key) => (
+            <div key={key} className="flex flex-col">
+              <label className="font-semibold text-gray-700">{key}:</label>
+              <input
+                type="text"
+                name={key}
+                value={formData[key]}
+                onChange={handleChange}
+                className="border border-gray-300 rounded p-2"
+              />
+            </div>
+          ))}
         </form>
         <div className="flex justify-end mt-6 space-x-4">
           <button onClick={handleSave} className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Save Changes</button>
