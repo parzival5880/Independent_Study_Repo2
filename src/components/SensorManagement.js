@@ -175,12 +175,6 @@ const SensorManagement = () => {
     }
   };
 
-  const handleViewSensor = (sensor) => {
-    logSensorAction(sensor.SensorID, "Read");
-    setEditingSensor(sensor);
-    setModalOpen(true);
-  };
-
   const handleViewSensorValues = async (sensorID) => {
     try {
       const response = await axios.get(`https://backend-login-1-xc0i.onrender.com/getsensorvalues/${sensorID}`);
@@ -189,6 +183,11 @@ const SensorManagement = () => {
     } catch (error) {
       console.error("Error fetching sensor values:", error.response?.data || error.message);
     }
+  };
+
+  const handleEditSensor = (sensor) => {
+    setEditingSensor(sensor);
+    setModalOpen(true);
   };
 
   const handleAddOrUpdateSensor = async (sensorDetails) => {
@@ -205,9 +204,6 @@ const SensorManagement = () => {
       } catch (error) {
         console.error("Error updating sensor details:", error.response?.data || error.message);
       }
-    } else {
-      const newSensor = { ...sensorDetails, SensorID: Date.now().toString() };
-      setSensors((prevSensors) => [...prevSensors, newSensor]);
     }
     setModalOpen(false);
   };
@@ -230,10 +226,10 @@ const SensorManagement = () => {
           sensors.map((sensor) => (
             <div
               key={sensor.SensorID}
-              className="bg-white p-6 rounded shadow-lg hover:shadow-xl cursor-pointer"
+              className="bg-white p-6 rounded shadow-lg hover:shadow-xl"
             >
               <h3 className="font-semibold text-xl mb-4">{sensor.SensorType} (ID: {sensor.SensorID})</h3>
-              <div className="text-sm text-gray-700">
+              <div className="text-sm text-gray-700 mb-4">
                 <p><strong>Range:</strong> {sensor.RangeMin} - {sensor.RangeMax}</p>
                 <p><strong>Absolute Range:</strong> {sensor.AbsoluteMin} - {sensor.AbsoluteMax}</p>
                 <p><strong>Current Value:</strong> {sensor.CurrentValue}</p>
@@ -242,14 +238,18 @@ const SensorManagement = () => {
                 <p><strong>Location:</strong> {sensor.Location}</p>
                 <p><strong>Data Collection Frequency:</strong> {sensor.DataCollectionFrequency} minutes</p>
                 <p><strong>Sensor Category:</strong> {sensor.SensorCategory}</p>
-                <p><strong>Created At:</strong> {new Date(sensor.CreatedAt).toLocaleString()}</p>
-                <p><strong>Updated At:</strong> {new Date(sensor.UpdatedAt).toLocaleString()}</p>
               </div>
               <button
                 onClick={() => handleViewSensorValues(sensor.SensorID)}
-                className="bg-blue-600 text-white px-4 py-2 rounded mt-4"
+                className="bg-blue-600 text-white px-4 py-2 rounded mt-2"
               >
                 View Sensor Values
+              </button>
+              <button
+                onClick={() => handleEditSensor(sensor)}
+                className="bg-green-600 text-white px-4 py-2 rounded mt-2 ml-2"
+              >
+                Update
               </button>
             </div>
           ))
@@ -290,8 +290,8 @@ const EditSensorModal = ({ sensor, onSave, onClose }) => {
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-      <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-lg">
-        <h2 className="text-xl font-semibold mb-6 text-center">Edit Sensor</h2>
+      <div className="bg-white p-4 rounded-lg shadow-lg w-full max-w-lg max-h-[80vh] overflow-y-auto">
+        <h2 className="text-xl font-semibold mb-4 text-center">Edit Sensor</h2>
         <form className="grid grid-cols-2 gap-4">
           {Object.keys(formData).map((key) => (
             <div key={key} className="flex flex-col">
