@@ -133,10 +133,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import AddSensorModal from './AddSensorModal';
 
 const SensorManagement = () => {
-  const [isModalOpen, setModalOpen] = useState(false);
   const [isValuesModalOpen, setValuesModalOpen] = useState(false);
   const [sensors, setSensors] = useState([]);
   const [sensorValues, setSensorValues] = useState([]);
