@@ -144,6 +144,20 @@ const SensorManagement = () => {
 
   const userID = localStorage.getItem('userID');
 
+  // Function to log actions in the access log
+  const logSensorAction = async (sensorID, action) => {
+    try {
+      await axios.post('https://backend-login-1-xc0i.onrender.com/sensoraccesslogs', {
+        SensorID: sensorID,
+        UserID: userID,
+        Action: action
+      });
+      console.log(`Logged action: ${action} for SensorID: ${sensorID}`);
+    } catch (error) {
+      console.error("Error logging sensor action:", error.response?.data || error.message);
+    }
+  };
+
   useEffect(() => {
     const fetchSensorDetails = async () => {
       try {
@@ -162,11 +176,14 @@ const SensorManagement = () => {
     }
   }, [userID, navigate]);
 
-  const fetchSensorValues = async (sensorID) => {
+  const handleViewSensorValues = async (sensorID) => {
     try {
       const response = await axios.get(`https://backend-login-1-xc0i.onrender.com/getsensorvalues/${sensorID}?limit=10`);
       setSensorValues(response.data);
       setValuesModalOpen(true);
+
+      // Log the "Read" action for viewing sensor values
+      await logSensorAction(sensorID, "Read");
     } catch (error) {
       console.error("Error fetching sensor values:", error.response?.data || error.message);
     }
@@ -177,6 +194,9 @@ const SensorManagement = () => {
       await axios.put(`https://backend-login-1-xc0i.onrender.com/updatesensordetails/${updatedSensor.SensorID}`, updatedSensor);
       setSensors(sensors.map((sensor) => sensor.SensorID === updatedSensor.SensorID ? updatedSensor : sensor));
       setEditModalOpen(false);
+
+      // Log the "Update" action after successfully updating the sensor
+      await logSensorAction(updatedSensor.SensorID, "Update");
     } catch (error) {
       console.error("Error updating sensor:", error.response?.data || error.message);
     }
@@ -227,6 +247,12 @@ const SensorManagement = () => {
                 className="bg-green-600 text-white px-4 py-2 rounded mt-4"
               >
                 Update
+              </button>
+              <button
+                onClick={() => handleViewSensorValues(sensor.SensorID)}
+                className="bg-blue-600 text-white px-4 py-2 rounded mt-4 ml-2"
+              >
+                View Sensor Values
               </button>
             </div>
           ))
