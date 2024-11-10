@@ -145,7 +145,7 @@ const SensorLogs = () => {
 
   const handleAddLog = (e) => {
     e.preventDefault();
-    const logID = logs.length + 1; // Mock LogID
+    const logID = logs.length + 1; // Mock LogID for the added log
     const newLogEntry = { LogID: logID.toString(), ...newLog };
     setLogs((prev) => [...prev, newLogEntry]);
     setNewLog({ SensorID: '', Value: '', WarningFlag: 'Normal' });
