@@ -134,16 +134,20 @@ const AuthorizedUsers = () => {
     AuthorizedUserID: '',
     CanManageAccounts: false,
   });
+  const [loading, setLoading] = useState(true); // Loading state for fetching users
   const navigate = useNavigate();
 
   // Function to fetch authorized users from the backend
   const fetchAuthorizedUsers = async () => {
+    setLoading(true); // Set loading to true when starting to fetch
     try {
       const response = await fetch('https://backend-login-1-xc0i.onrender.com/authorizedusers');
       const data = await response.json();
       setAuthorizedUsers(data);
     } catch (error) {
       console.error('Error fetching authorized users:', error);
+    } finally {
+      setLoading(false); // Set loading to false after fetching is complete
     }
   };
 
@@ -157,10 +161,10 @@ const AuthorizedUsers = () => {
         },
         body: JSON.stringify(newUser),
       });
-      
+
       if (response.ok) {
-        await fetchAuthorizedUsers(); // Refresh list after adding user
         setNewUser({ AuthorizedUserID: '', CanManageAccounts: false });
+        await fetchAuthorizedUsers(); // Refresh list after adding user
       } else {
         const data = await response.json();
         console.error('Error adding authorized user:', data.message);
@@ -170,8 +174,9 @@ const AuthorizedUsers = () => {
     }
   };
 
+  // Fetch users on initial render
   useEffect(() => {
-    fetchAuthorizedUsers(); // Fetch users on initial render
+    fetchAuthorizedUsers();
   }, []);
 
   return (
@@ -213,30 +218,42 @@ const AuthorizedUsers = () => {
       </div>
 
       {/* Users Table */}
-      <table className="w-full border">
-        <thead>
-          <tr className="bg-gray-100">
-            <th className="border px-4 py-2">Patient ID</th>
-            <th className="border px-4 py-2">User ID</th>
-            <th className="border px-4 py-2">Can Manage Accounts</th>
-            <th className="border px-4 py-2">Created At</th>
-            <th className="border px-4 py-2">Expires At</th>
-          </tr>
-        </thead>
-        <tbody>
-          {authorizedUsers.map((user, index) => (
-            <tr key={index}>
-              <td className="border px-4 py-2">{user.PatientID}</td>
-              <td className="border px-4 py-2">{user.AuthorizedUserID}</td>
-              <td className="border px-4 py-2">
-                {user.CanManageAccounts ? 'Yes' : 'No'}
-              </td>
-              <td className="border px-4 py-2">{user.CreatedAt}</td>
-              <td className="border px-4 py-2">{user.ExpiresAt}</td>
+      {loading ? (
+        <p>Loading users...</p>
+      ) : (
+        <table className="w-full border">
+          <thead>
+            <tr className="bg-gray-100">
+              <th className="border px-4 py-2">User ID</th>
+              <th className="border px-4 py-2">Authorized User ID</th>
+              <th className="border px-4 py-2">Can Manage Accounts</th>
+              <th className="border px-4 py-2">Created At</th>
+              <th className="border px-4 py-2">Expires At</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {authorizedUsers.length > 0 ? (
+              authorizedUsers.map((user, index) => (
+                <tr key={index}>
+                  <td className="border px-4 py-2">{user.UserID}</td>
+                  <td className="border px-4 py-2">{user.AuthorizedUserID}</td>
+                  <td className="border px-4 py-2">
+                    {user.CanManageAccounts ? 'Yes' : 'No'}
+                  </td>
+                  <td className="border px-4 py-2">{user.CreatedAt}</td>
+                  <td className="border px-4 py-2">{user.ExpiresAt}</td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan="5" className="border px-4 py-2 text-center">
+                  No authorized users found.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      )}
     </div>
   );
 };
