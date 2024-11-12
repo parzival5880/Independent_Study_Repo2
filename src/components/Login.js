@@ -343,7 +343,7 @@ const Login = () => {
 
       if (data.status === 1 && data.role === 'Patient') {
         localStorage.setItem('authToken', data.access_token);
-        localStorage.setItem('userID', data.user_id);
+        localStorage.setItem('UserID', data.user_id);
         setResponseMessage(`Welcome ${data.user || 'User'}!`);
         navigate('/dashboard');
       } else {

@@ -140,7 +140,11 @@ const AuthorizedUsers = () => {
   const fetchAuthorizedUsers = async () => {
     setLoading(true); // Set loading to true when starting to fetch
     try {
-      const response = await fetch('https://backend-login-1-xc0i.onrender.com/authorizedusers');
+      const response = await fetch('https://backend-login-1-xc0i.onrender.com/authorizedusers', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`, // Assuming JWT token is stored in localStorage
+        },
+      });
       const data = await response.json();
       setAuthorizedUsers(data);
     } catch (error) {
@@ -157,6 +161,7 @@ const AuthorizedUsers = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`, // Assuming JWT token is stored in localStorage
         },
         body: JSON.stringify(newUser),
       });
