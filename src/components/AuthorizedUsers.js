@@ -149,20 +149,24 @@ const AuthorizedUsers = () => {
 
   // Call fetchAuthorizedUsers after adding a new user
   const handleAddUser = async () => {
-    const response = await fetch('https://backend-login-1-xc0i.onrender.com/postauthorizeduser', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(newUser),
-    });
-    
-    if (response.ok) {
-      await fetchAuthorizedUsers(); // Refresh list after adding user
-      setNewUser({ AuthorizedUserID: '', CanManageAccounts: false });
-    } else {
-      const data = await response.json();
-      console.error('Error adding authorized user:', data.message);
+    try {
+      const response = await fetch('https://backend-login-1-xc0i.onrender.com/postauthorizeduser', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(newUser),
+      });
+      
+      if (response.ok) {
+        await fetchAuthorizedUsers(); // Refresh list after adding user
+        setNewUser({ AuthorizedUserID: '', CanManageAccounts: false });
+      } else {
+        const data = await response.json();
+        console.error('Error adding authorized user:', data.message);
+      }
+    } catch (error) {
+      console.error('Error during add user request:', error);
     }
   };
 
