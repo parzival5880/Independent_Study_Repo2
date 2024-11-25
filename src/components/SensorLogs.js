@@ -230,70 +230,157 @@
 
 // export default SensorLogs;
 
+// import React, { useState, useEffect } from 'react';
+// import { useNavigate } from 'react-router-dom';
+// import axios from 'axios';
+
+// const SensorLogs = () => {
+//   const [logs, setLogs] = useState([]);
+//   const navigate = useNavigate();
+
+//   // Fetch logs from the backend API
+//   useEffect(() => {
+//     const fetchLogs = async () => {
+//       try {
+//         const userID = localStorage.getItem('UserID'); // Retrieve UserID from localStorage
+//         if (!userID) {
+//           console.error('No UserID found in localStorage');
+//           return;
+//         }
+
+//         // Make the API request with the UserID as a query parameter
+//         const response = await axios.get(
+//           `https://backend-login-1-xc0i.onrender.com/sensordatalogs?userID=${userID}`
+//         );
+//         setLogs(response.data);
+//       } catch (error) {
+//         console.error('Error fetching sensor logs:', error);
+//       }
+//     };
+
+//     fetchLogs();
+//   }, []);
+
+//   return (
+//     <div className="max-w-4xl mx-auto py-8">
+//       <h2 className="text-2xl font-bold mb-4">Sensor Logs</h2>
+
+//       {/* Back to Dashboard Button */}
+//       <button
+//         onClick={() => navigate('/dashboard')}
+//         className="bg-gray-600 text-white px-4 py-2 rounded mb-4"
+//       >
+//         ← Back to Dashboard
+//       </button>
+
+//       {/* Log Table */}
+//       <table className="w-full border">
+//         <thead>
+//           <tr className="bg-gray-100">
+//             <th className="border px-4 py-2">Timestamp</th>
+//             <th className="border px-4 py-2">Value</th>
+//             <th className="border px-4 py-2">Warning Flag</th>
+//           </tr>
+//         </thead>
+//         <tbody>
+//           {logs.map((log) => (
+//             <tr key={log.TimeStamp}>
+//               <td className="border px-4 py-2">{log.TimeStamp}</td>
+//               <td className="border px-4 py-2">{log.Value}</td>
+//               <td className="border px-4 py-2">{log.WarningFlag}</td>
+//             </tr>
+//           ))}
+//         </tbody>
+//       </table>
+//     </div>
+//   );
+// };
+
+// export default SensorLogs;
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
-const SensorLogs = () => {
-  const [logs, setLogs] = useState([]);
+const SensorTable = () => {
+  const [sensors, setSensors] = useState([]);
   const navigate = useNavigate();
 
-  // Fetch logs from the backend API
+  // Fetch sensor data from the backend
   useEffect(() => {
-    const fetchLogs = async () => {
+    const fetchSensorData = async () => {
       try {
-        const userID = localStorage.getItem('UserID'); // Retrieve UserID from localStorage
-        if (!userID) {
-          console.error('No UserID found in localStorage');
-          return;
-        }
-
-        // Make the API request with the UserID as a query parameter
         const response = await axios.get(
-          `https://backend-login-1-xc0i.onrender.com/sensordatalogs?userID=${userID}`
+          'https://backend-login-1-xc0i.onrender.com/sensors'
         );
-        setLogs(response.data);
+        setSensors(response.data);
       } catch (error) {
-        console.error('Error fetching sensor logs:', error);
+        console.error('Error fetching sensor data:', error);
       }
     };
 
-    fetchLogs();
+    fetchSensorData();
   }, []);
 
   return (
-    <div className="max-w-4xl mx-auto py-8">
-      <h2 className="text-2xl font-bold mb-4">Sensor Logs</h2>
+    <div className="max-w-full mx-auto py-8 px-4">
+      <h1 className="text-3xl font-bold mb-6 text-center">Sensor Information</h1>
 
       {/* Back to Dashboard Button */}
       <button
         onClick={() => navigate('/dashboard')}
-        className="bg-gray-600 text-white px-4 py-2 rounded mb-4"
+        className="bg-blue-600 text-white px-6 py-2 rounded mb-6 hover:bg-blue-700"
       >
         ← Back to Dashboard
       </button>
 
-      {/* Log Table */}
-      <table className="w-full border">
-        <thead>
-          <tr className="bg-gray-100">
-            <th className="border px-4 py-2">Timestamp</th>
-            <th className="border px-4 py-2">Value</th>
-            <th className="border px-4 py-2">Warning Flag</th>
-          </tr>
-        </thead>
-        <tbody>
-          {logs.map((log) => (
-            <tr key={log.TimeStamp}>
-              <td className="border px-4 py-2">{log.TimeStamp}</td>
-              <td className="border px-4 py-2">{log.Value}</td>
-              <td className="border px-4 py-2">{log.WarningFlag}</td>
+      {/* Sensor Details Table */}
+      <div className="overflow-x-auto shadow-lg">
+        <table className="w-full border-collapse border border-gray-300 text-left">
+          <thead className="bg-gray-200">
+            <tr>
+              <th className="border border-gray-300 px-4 py-2">Sensor ID</th>
+              <th className="border border-gray-300 px-4 py-2">Sensor Type</th>
+              <th className="border border-gray-300 px-4 py-2">Range Min</th>
+              <th className="border border-gray-300 px-4 py-2">Range Max</th>
+              <th className="border border-gray-300 px-4 py-2">Absolute Min</th>
+              <th className="border border-gray-300 px-4 py-2">Absolute Max</th>
+              <th className="border border-gray-300 px-4 py-2">Current Value</th>
+              <th className="border border-gray-300 px-4 py-2">Status</th>
+              <th className="border border-gray-300 px-4 py-2">Patient ID</th>
+              <th className="border border-gray-300 px-4 py-2">Location</th>
+              <th className="border border-gray-300 px-4 py-2">Data Collection Frequency</th>
+              <th className="border border-gray-300 px-4 py-2">Sensor Category</th>
+              <th className="border border-gray-300 px-4 py-2">Created At</th>
+              <th className="border border-gray-300 px-4 py-2">Updated At</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {sensors.map((sensor) => (
+              <tr key={sensor.SensorID} className="hover:bg-gray-100">
+                <td className="border border-gray-300 px-4 py-2">{sensor.SensorID}</td>
+                <td className="border border-gray-300 px-4 py-2">{sensor.SensorType}</td>
+                <td className="border border-gray-300 px-4 py-2">{sensor.RangeMin}</td>
+                <td className="border border-gray-300 px-4 py-2">{sensor.RangeMax}</td>
+                <td className="border border-gray-300 px-4 py-2">{sensor.AbsoluteMin}</td>
+                <td className="border border-gray-300 px-4 py-2">{sensor.AbsoluteMax}</td>
+                <td className="border border-gray-300 px-4 py-2">{sensor.CurrentValue}</td>
+                <td className={`border border-gray-300 px-4 py-2 ${sensor.Status === 'Active' ? 'text-green-600' : 'text-red-600'}`}>
+                  {sensor.Status}
+                </td>
+                <td className="border border-gray-300 px-4 py-2">{sensor.PatientID}</td>
+                <td className="border border-gray-300 px-4 py-2">{sensor.Location}</td>
+                <td className="border border-gray-300 px-4 py-2">{sensor.DataCollectionFrequency}</td>
+                <td className="border border-gray-300 px-4 py-2">{sensor.SensorCategory}</td>
+                <td className="border border-gray-300 px-4 py-2">{sensor.CreatedAt}</td>
+                <td className="border border-gray-300 px-4 py-2">{sensor.UpdatedAt}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 };
 
-export default SensorLogs;
+export default SensorTable;
