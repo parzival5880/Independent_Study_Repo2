@@ -116,6 +116,77 @@
 
 // export default AccessLogs;
 
+// import React, { useState, useEffect } from 'react';
+// import { useNavigate } from 'react-router-dom';
+// import axios from 'axios';
+
+// const AccessLogs = () => {
+//   const [logs, setLogs] = useState([]);
+//   const navigate = useNavigate();
+
+//   // Fetch logs from the backend API on component mount
+//   useEffect(() => {
+//     const fetchLogs = async () => {
+//       try {
+//         const response = await axios.get('https://backend-login-1-xc0i.onrender.com/sensoraccesslogs');
+//         setLogs(response.data);
+//       } catch (error) {
+//         console.error('Error fetching access logs:', error.response?.data || error.message);
+//       }
+//     };
+
+//     fetchLogs();
+//   }, []);
+
+//   return (
+//     <div className="max-w-4xl mx-auto py-8">
+//       <h2 className="text-2xl font-bold mb-4">Access Logs</h2>
+
+//       {/* Back to Dashboard Button */}
+//       <button
+//         onClick={() => navigate('/dashboard')}
+//         className="bg-gray-600 text-white px-4 py-2 rounded mb-4"
+//       >
+//         ← Back to Dashboard
+//       </button>
+
+//       {/* Logs Table */}
+//       <table className="w-full border">
+//         <thead>
+//           <tr className="bg-gray-100">
+//             <th className="border px-4 py-2">Access Log ID</th>
+//             <th className="border px-4 py-2">Sensor ID</th>
+//             <th className="border px-4 py-2">User ID</th>
+//             <th className="border px-4 py-2">Timestamp</th>
+//             <th className="border px-4 py-2">Action</th>
+//           </tr>
+//         </thead>
+//         <tbody>
+//           {logs.length > 0 ? (
+//             logs.map((log) => (
+//               <tr key={log.AccessLogID}>
+//                 <td className="border px-4 py-2">{log.AccessLogID}</td>
+//                 <td className="border px-4 py-2">{log.SensorID}</td>
+//                 <td className="border px-4 py-2">{log.UserID}</td>
+//                 <td className="border px-4 py-2">{new Date(log.AccessTimestamp).toLocaleString()}</td>
+//                 <td className="border px-4 py-2">{log.Action}</td>
+//               </tr>
+//             ))
+//           ) : (
+//             <tr>
+//               <td className="border px-4 py-2 text-center" colSpan="5">
+//                 No logs available
+//               </td>
+//             </tr>
+//           )}
+//         </tbody>
+//       </table>
+//     </div>
+//   );
+// };
+
+// export default AccessLogs;
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
